@@ -1,3 +1,5 @@
+#[cfg(feature = "log")]
+use log::trace;
 #[derive(Debug, Clone)]
 pub struct InterfacePool{
     size:u16,
@@ -10,7 +12,8 @@ impl InterfacePool{
         for i in 0..size as usize{
             pool.push(u16::from_be_bytes(data[i*2..(i*2)+2].try_into().unwrap()));
         }
-        println!("{:#X?}", size);
+        #[cfg(feature = "log")]
+        trace!("{:#X?}", size);
         (InterfacePool {
             size: size,
             pool: pool

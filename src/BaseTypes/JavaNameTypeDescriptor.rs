@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct JNameTypeDescriptor{
     nameIdx:u16,
     descriptorIdx:u16
@@ -12,4 +13,8 @@ impl JNameTypeDescriptor{
         }
     }
 }
-impl JBaseType for JNameTypeDescriptor{}
+impl JBaseType for JNameTypeDescriptor{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}

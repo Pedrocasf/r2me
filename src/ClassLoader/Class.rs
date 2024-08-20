@@ -1,3 +1,4 @@
+use crate::BaseTypes::JavaString::JString;
 use super::{
     ConstantPool::ConstantPool,
     InterfacePool::InterfacePool,
@@ -5,6 +6,10 @@ use super::{
     MethodPool::MethodPool,
     AttributePool::AttributePool,
 };
+use crate::BaseTypes::JavaStrRef::JStrRef;
+use crate::BaseTypes::{JBaseType, JClassRef, JFieldRef, JInterfaceRef, JMethodRef};
+use crate::ClassLoader::ConstantPool::ConstantPoolID;
+
 #[derive(Debug, Clone)]
 pub struct Class{
     magic:u32,
@@ -18,7 +23,9 @@ pub struct Class{
     fieldPool:FieldPool,
     methodPool:MethodPool,
     attributePool:AttributePool,
-    bytecode:Vec<u8>
+}
+pub enum ReturnTypes{
+
 }
 impl Class{
     pub fn new(data:Vec<u8>)->Class{
@@ -40,12 +47,41 @@ impl Class{
             interfacePool:interfacePool,
             fieldPool:fieldPool,
             methodPool:methodPool,
-            attributePool:attributePool,
-            bytecode:bytecode.clone()
+            attributePool:attributePool
         };
         if c.magic != 0xCAFEBABE{
             panic!("Invalid Magic in class");
         };
         return c;
+    }
+    pub fn solve_ref(&mut self, index:u16, ref_type:ConstantPoolID)-> ReturnTypes{
+        use ConstantPoolID::*;
+        //let str_ref:Vec<(u16, Box<dyn JBaseType>)> = self.constantPool.get_elements_of_type(ConstantPoolID::StrRef);
+        if let Some(mut element) = self.constantPool.get_element_of_type_and_index(ref_type, index){
+            match element.id{
+                IClassRef => {
+                    let deref = element.val.as_any().downcast_mut::<JClassRef>().unwrap().clone();
+                }
+                IStrRef => {
+                    let deref = element.val.as_any().downcast_mut::<JStrRef>().unwrap().clone();
+                }
+                IFieldRef => {
+                    let deref = element.val.as_any().downcast_mut::<JFieldRef>().unwrap().clone();
+                }
+                IMethodRef => {
+                    let deref = element.val.as_any().downcast_mut::<JMethodRef>().unwrap().clone();
+                }
+                IInterfaceRef => {
+                    let deref = element.val.as_any().downcast_mut::<JInterfaceRef>().unwrap().clone();
+                }
+                _ => None
+            };
+        }
+        println!("Cannot find JStrRef element of index {:}", index);
+
+
+        let mut boxed_java_str = self.constantPool.get_element_of_type_and_index(ConstantPoolID::IString, str_ref.get_idx())
+                .expect(&format!("Cannot find JString element of index {:}", str_ref.get_idx()));
+        boxed_java_str.val.as_any().downcast_mut::<JString>().unwrap().clone()
     }
 }

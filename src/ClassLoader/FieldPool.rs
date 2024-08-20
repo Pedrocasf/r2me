@@ -1,3 +1,5 @@
+#[cfg(feature = "log")]
+use log::trace;
 use super::FieldInfo::FieldInfo;
 #[derive(Debug, Clone)]
 pub struct FieldPool{
@@ -7,7 +9,7 @@ pub struct FieldPool{
 impl FieldPool{
     pub fn new(data:&[u8])->(FieldPool,usize){
         let size = u16::from_be_bytes(data[0..2].try_into().unwrap());
-        println!("f{:#X?}", size);
+        trace!("f{:#X?}", size);
         let mut fields = Vec::<FieldInfo>::with_capacity(size as usize);
         let mut acc = 2;
         for _ in 0..size as usize{

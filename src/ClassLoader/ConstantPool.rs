@@ -1,31 +1,28 @@
-use crate::BaseTypes::{
-    JString::JString,
-    JInteger::JInteger,
-    JFloat::JFloat,
-    JLong::JLong,
-    JDouble::JDouble,
-    JClassRef::JClassRef,
-    JStrRef::JStrRef,
-    JFieldRef::JFieldRef,
-    JMethodRef::JMethodRef,
-    JInterfaceRef::JInterfaceRef,
-    JNameTypeDescriptor::JNameTypeDescriptor,
-    JBaseType
-};
-#[derive(Debug, Clone)]
+#[cfg(feature = "std")]
+use std::string::String;
+
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+use std::any::Any;
+#[cfg(feature = "log")]
+use log::trace;
+use crate::BaseTypes::{JavaString::JString, JavaInteger::JInteger, JavaFloat::JFloat, JavaLong::JLong, JavaDouble::JDouble, JavaClassRef::JClassRef, JavaStrRef::JStrRef, JavaFieldRef::JFieldRef, JavaMethodRef::JMethodRef, JavaInterfaceRef::JInterfaceRef, JavaNameTypeDescriptor::JNameTypeDescriptor, JBaseType, JBaseTypeClone};
+use crate::ClassLoader::ConstantPool::ConstantPoolID::IString;
+
+#[derive(Debug, Clone, Ord, PartialOrd, PartialEq, Eq, Copy)]
 #[repr(u8)]
 pub enum ConstantPoolID{
-    String=1,
-    Integer=3,
-    Float=4,
-    Long=5,
-    Double=6,
-    ClassRef=7,
-    StrRef=8,
-    FieldRef=9,
-    MethodRef=10,
-    InterfaceRef=11,
-    NameTypeDescriptor=12,
+    IString=1,
+    IInteger=3,
+    IFloat=4,
+    ILong=5,
+    IDouble=6,
+    IClassRef=7,
+    IStrRef=8,
+    IFieldRef=9,
+    IMethodRef=10,
+    IInterfaceRef=11,
+    INameTypeDescriptor=12,
 }
 impl TryFrom<u8> for ConstantPoolID{
     type Error = String;
@@ -33,44 +30,45 @@ impl TryFrom<u8> for ConstantPoolID{
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         use ConstantPoolID::*;
         match value {
-            1 => Ok(String),
-            3 => Ok(Integer),
-            4 => Ok(Float),
-            5 => Ok(Long),
-            6 => Ok(Double),
-            7 => Ok(ClassRef),
-            8 => Ok(StrRef),
-            9 => Ok(FieldRef),
-            10 => Ok(MethodRef),
-            11 => Ok(InterfaceRef),
-            12 => Ok(NameTypeDescriptor),
+            1 => Ok(IString),
+            3 => Ok(IInteger),
+            4 => Ok(IFloat),
+            5 => Ok(ILong),
+            6 => Ok(IDouble),
+            7 => Ok(IClassRef),
+            8 => Ok(IStrRef),
+            9 => Ok(IFieldRef),
+            10 => Ok(IMethodRef),
+            11 => Ok(IInterfaceRef),
+            12 => Ok(INameTypeDescriptor),
             w => Err(format!("Invalid ConstatndPoolId {:#X}",w)),
         }
     }
 }
 #[derive(Debug, Clone)]
 pub struct ConstantPoolType{
-    id:ConstantPoolID,
-    val:Box<dyn JBaseType>
+    pub id:ConstantPoolID,
+    pub val:Box<dyn JBaseType>
 }
-impl ConstantPoolType{
-    pub fn new(v:&[u8])->(ConstantPoolType,u16,bool){
-        use  ConstantPoolID::*;
-        match v[0].try_into().expect(&format!("Invalid ConstatndPoolId {:#X?}",v[0])){
-            String             => (ConstantPoolType{ id: String             ,val: Box::new(JString            ::new(&v[1..])) },u16::from_be_bytes(v[1..3].try_into().unwrap())+3, false),
-            Integer            => (ConstantPoolType{ id: Integer            ,val: Box::new(JInteger           ::new(v[1..5].try_into().unwrap()))},5,false),
-            Float              => (ConstantPoolType{ id: Float              ,val: Box::new(JFloat             ::new(v[1..5].try_into().unwrap()))},5,false),
-            Long               => (ConstantPoolType{ id: Long               ,val: Box::new(JLong              ::new(v[1..9].try_into().unwrap()))},9,true),
-            Double             => (ConstantPoolType{ id: Double             ,val: Box::new(JDouble            ::new(v[1..9].try_into().unwrap()))},9,true),
-            ClassRef           => (ConstantPoolType{ id: ClassRef           ,val: Box::new(JClassRef          ::new(v[1..3].try_into().unwrap()))},3,false),
-            StrRef             => (ConstantPoolType{ id: StrRef             ,val: Box::new(JStrRef            ::new(v[1..3].try_into().unwrap()))},3,false),
-            FieldRef           => (ConstantPoolType{ id: FieldRef           ,val: Box::new(JFieldRef          ::new(v[1..5].try_into().unwrap()))},5,false),
-            MethodRef          => (ConstantPoolType{ id: MethodRef          ,val: Box::new(JMethodRef         ::new(v[1..5].try_into().unwrap()))},5,false),
-            InterfaceRef       => (ConstantPoolType{ id: InterfaceRef       ,val: Box::new(JInterfaceRef      ::new(v[1..5].try_into().unwrap()))},5,false),
-            NameTypeDescriptor => (ConstantPoolType{ id: NameTypeDescriptor ,val: Box::new(JNameTypeDescriptor::new(v[1..5].try_into().unwrap()))},5,false),
+impl ConstantPoolType {
+        pub fn new(v:&[u8])->(ConstantPoolType,u16,bool){
+            use  ConstantPoolID::*;
+            //trace!("id:{:?}", <u8 as TryInto<ConstantPoolID>>::try_into(v[0]).unwrap());
+            match v[0].try_into().expect(&format!("Invalid ConstatndPoolId {:#X?}",v[0])){
+                IString             => (ConstantPoolType{ id: IString             ,val: Box::new(JString            ::new(&v[1..])) },u16::from_be_bytes(v[1..3].try_into().unwrap())+3, false),
+                IInteger            => (ConstantPoolType{ id: IInteger            ,val: Box::new(JInteger           ::new(v[1..5].try_into().unwrap()))},5,false),
+                IFloat              => (ConstantPoolType{ id: IFloat              ,val: Box::new(JFloat             ::new(v[1..5].try_into().unwrap()))},5,false),
+                ILong               => (ConstantPoolType{ id: ILong               ,val: Box::new(JLong              ::new(v[1..9].try_into().unwrap()))},9,true),
+                IDouble             => (ConstantPoolType{ id: IDouble             ,val: Box::new(JDouble            ::new(v[1..9].try_into().unwrap()))},9,true),
+                IClassRef           => (ConstantPoolType{ id: IClassRef           ,val: Box::new(JClassRef          ::new(v[1..3].try_into().unwrap()))},3,false),
+                IStrRef             => (ConstantPoolType{ id: IStrRef             ,val: Box::new(JStrRef            ::new(v[1..3].try_into().unwrap()))},3,false),
+                IFieldRef           => (ConstantPoolType{ id: IFieldRef           ,val: Box::new(JFieldRef          ::new(v[1..5].try_into().unwrap()))},5,false),
+                IMethodRef          => (ConstantPoolType{ id: IMethodRef          ,val: Box::new(JMethodRef         ::new(v[1..5].try_into().unwrap()))},5,false),
+                IInterfaceRef       => (ConstantPoolType{ id: IInterfaceRef       ,val: Box::new(JInterfaceRef      ::new(v[1..5].try_into().unwrap()))},5,false),
+                INameTypeDescriptor => (ConstantPoolType{ id: INameTypeDescriptor ,val: Box::new(JNameTypeDescriptor::new(v[1..5].try_into().unwrap()))},5,false),
+            }
         }
     }
-}
 #[derive(Debug, Clone)]
 pub struct ConstantPool{
     size:u16,
@@ -79,11 +77,11 @@ pub struct ConstantPool{
 impl ConstantPool{
     pub fn new(data:&[u8])->(ConstantPool,usize){
         let size = u16::from_be_bytes(data[0..2].try_into().unwrap());
-        println!("{:#X?}",size);
+        //trace!("{:#X?}",size);
         let mut i = 1;
         let mut ptr_idx = 2; 
         let mut pool = Vec::new();
-        println!("{:#X?}", ptr_idx);
+        //trace!("{:#X?}", ptr_idx);
         while i < size{
             let (constantPoolType, typesize ,slotCount) = ConstantPoolType::new(&data[ptr_idx..]);
             i += 1;
@@ -99,5 +97,22 @@ impl ConstantPool{
             pool:pool
         }
         ,ptr_idx)
+    }
+    pub fn get_elements_of_type(&self, type_id:ConstantPoolID) -> Vec<(u16, ConstantPoolType)> {
+        self.pool
+            .iter()
+            .enumerate()
+            .filter(|(idx, i)|  type_id == ((**i).id))
+            .map(|(idx, i)|(idx as u16, i.clone()))
+            .collect()
+    }
+    pub fn get_element_of_type_and_index(&self, type_id:ConstantPoolID, index:u16) -> Option<ConstantPoolType>{
+        if let Some((idx, val)) = self.pool
+            .iter()
+            .enumerate()
+            .find(|(idx, i)| (**i).id == type_id && (*idx as u16) == index)
+        {
+            Some(val.clone())
+        }else { None }
     }
 }

@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct JMethodRef{
     classRefIdx:u16,
     nameTypeDescriptorIdx:u16
@@ -12,4 +13,8 @@ impl JMethodRef{
         }
     }
 }
-impl JBaseType for JMethodRef{}
+impl JBaseType for JMethodRef{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}

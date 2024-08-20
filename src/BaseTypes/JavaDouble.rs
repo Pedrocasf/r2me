@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JDouble{
     data:f64
 }
@@ -10,4 +11,8 @@ impl JDouble{
         }
     }
 }
-impl JBaseType for JDouble{}
+impl JBaseType for JDouble{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}

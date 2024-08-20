@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JFloat{
     data:f32
 }
@@ -10,4 +11,8 @@ impl JFloat{
         }
     }
 }
-impl JBaseType for JFloat{}
+impl JBaseType for JFloat{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}

@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct JInteger{
     data:u32
 }
@@ -10,4 +11,8 @@ impl JInteger{
         }
     }
 }
-impl JBaseType for JInteger{}
+impl JBaseType for JInteger{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}

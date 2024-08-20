@@ -1,5 +1,6 @@
+use std::any::Any;
 use super::JBaseType;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct JFieldRef{
     classRefIdx:u16,
     nameTypeDescriptorIdx:u16
@@ -12,4 +13,8 @@ impl JFieldRef{
         }
     }
 }
-impl JBaseType for JFieldRef{}
+impl JBaseType for JFieldRef{
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}
