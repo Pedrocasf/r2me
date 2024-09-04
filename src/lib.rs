@@ -4,27 +4,25 @@
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 #[cfg(not(feature = "std"))]
 extern crate alloc;
-pub mod ClassLoader;
-pub mod BaseTypes;
-pub mod VirtualMachine;
+pub mod base_types;
+pub mod class_loader;
+pub mod virtual_machine;
 
-use crate::ClassLoader::Class::Class;
+use crate::class_loader::class::Class;
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "std")]
-    use std::env;
-    #[cfg(feature = "std")]
-    use std::fs;
+    use crate::class_loader; //, virtual_machine};
+    use class_loader::class::Class;
     #[cfg(feature = "log")]
     use log::trace;
-    use ClassLoader::Class::Class;
-    use crate::{ClassLoader, VirtualMachine};
+    #[cfg(feature = "std")]
+    use std::fs;
 
     #[test]
-    fn hello_world() -> Result<(), String>{
+    fn hello_world() -> Result<(), String> {
         #[cfg(feature = "log")]
         simple_logging::log_to_file("hello_world.log", log::LevelFilter::Trace).unwrap();
-        let main_class_path = &"jars/HelloMIDlet/HelloMIDlet.class";
+        let main_class_path = &"classes/HelloMIDlet/HelloMIDlet.class";
         //#[cfg(feature = "log")]
         //trace!("{:}", main_class_path);
         let main_class_data = fs::read(main_class_path).expect("CLASS FILE NOT FOUND");
@@ -36,5 +34,4 @@ mod tests {
         //let virtual_machine = VirtualMachine::new(main_class_obj);
         Ok(())
     }
-
 }
