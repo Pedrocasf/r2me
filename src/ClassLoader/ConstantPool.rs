@@ -106,6 +106,16 @@ impl ConstantPool{
             .map(|(idx, i)|(idx as u16, i.clone()))
             .collect()
     }
+    pub fn get_element_of_index(&self, index:u16) -> Option<ConstantPoolType>{
+        if let Some((_idx, val)) = self.pool
+            .iter()
+            .enumerate()
+            .find(|(idx, _i)|(*idx as u16) == index)
+        {
+            Some(val.clone())
+        }else { None }
+
+    }
     pub fn get_element_of_type_and_index(&self, type_id:ConstantPoolID, index:u16) -> Option<ConstantPoolType>{
         if let Some((idx, val)) = self.pool
             .iter()

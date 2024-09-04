@@ -8,7 +8,7 @@ use super::{
 };
 use crate::BaseTypes::JavaStrRef::JStrRef;
 use crate::BaseTypes::{JBaseType, JClassRef, JFieldRef, JInterfaceRef, JMethodRef};
-use crate::ClassLoader::ConstantPool::ConstantPoolID;
+use crate::ClassLoader::ConstantPool::{ConstantPoolID, ConstantPoolType};
 
 #[derive(Debug, Clone)]
 pub struct Class{
@@ -25,7 +25,11 @@ pub struct Class{
     attributePool:AttributePool,
 }
 pub enum ReturnTypes{
-
+    ClassRef(JClassRef),
+    StrRef(JStrRef),
+    FieldRef(JFieldRef),
+    MethodRef(JMethodRef),
+    InterfaceRef(JInterfaceRef)
 }
 impl Class{
     pub fn new(data:Vec<u8>)->Class{
@@ -52,36 +56,45 @@ impl Class{
         if c.magic != 0xCAFEBABE{
             panic!("Invalid Magic in class");
         };
-        return c;
+        c
     }
-    pub fn solve_ref(&mut self, index:u16, ref_type:ConstantPoolID)-> ReturnTypes{
+    pub fn solve_ref_idx(&mut self, index:u16) -> ReturnTypes{
+        if let Some(element) = self.constantPool.get_element_of_index(index){
+            return self.cast_refs(element);
+        }
+        unreachable!()
+    }
+    fn cast_refs(&self, mut element:ConstantPoolType)->ReturnTypes {
+        match element.id {
+            ConstantPoolID::IClassRef => {
+                let deref = element.val.as_any().downcast_mut::<JClassRef>().unwrap().clone();
+                ReturnTypes::ClassRef(deref)
+            }
+            ConstantPoolID::IStrRef => {
+                let deref = element.val.as_any().downcast_mut::<JStrRef>().unwrap().clone();
+                ReturnTypes::StrRef(deref)
+            }
+            ConstantPoolID::IFieldRef => {
+                let deref = element.val.as_any().downcast_mut::<JFieldRef>().unwrap().clone();
+                ReturnTypes::FieldRef(deref)
+            }
+            ConstantPoolID::IMethodRef => {
+                let deref = element.val.as_any().downcast_mut::<JMethodRef>().unwrap().clone();
+                ReturnTypes::MethodRef(deref)
+            }
+            ConstantPoolID::IInterfaceRef => {
+                let deref = element.val.as_any().downcast_mut::<JInterfaceRef>().unwrap().clone();
+                ReturnTypes::InterfaceRef(deref)
+            }
+            _ => panic!("invalid deref type")
+        }
+    }
+    pub fn solve_ref_idx_type(&mut self, index:u16, ref_type:ConstantPoolID)-> ReturnTypes{
         use ConstantPoolID::*;
         //let str_ref:Vec<(u16, Box<dyn JBaseType>)> = self.constantPool.get_elements_of_type(ConstantPoolID::StrRef);
-        if let Some(mut element) = self.constantPool.get_element_of_type_and_index(ref_type, index){
-            match element.id{
-                IClassRef => {
-                    let deref = element.val.as_any().downcast_mut::<JClassRef>().unwrap().clone();
-                }
-                IStrRef => {
-                    let deref = element.val.as_any().downcast_mut::<JStrRef>().unwrap().clone();
-                }
-                IFieldRef => {
-                    let deref = element.val.as_any().downcast_mut::<JFieldRef>().unwrap().clone();
-                }
-                IMethodRef => {
-                    let deref = element.val.as_any().downcast_mut::<JMethodRef>().unwrap().clone();
-                }
-                IInterfaceRef => {
-                    let deref = element.val.as_any().downcast_mut::<JInterfaceRef>().unwrap().clone();
-                }
-                _ => None
-            };
+        if let Some(element) = self.constantPool.get_element_of_type_and_index(ref_type, index){
+            return self.cast_refs(element);
         }
-        println!("Cannot find JStrRef element of index {:}", index);
-
-
-        let mut boxed_java_str = self.constantPool.get_element_of_type_and_index(ConstantPoolID::IString, str_ref.get_idx())
-                .expect(&format!("Cannot find JString element of index {:}", str_ref.get_idx()));
-        boxed_java_str.val.as_any().downcast_mut::<JString>().unwrap().clone()
+        unreachable!()
     }
 }

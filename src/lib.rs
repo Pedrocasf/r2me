@@ -24,7 +24,7 @@ mod tests {
     fn hello_world() -> Result<(), String>{
         #[cfg(feature = "log")]
         simple_logging::log_to_file("hello_world.log", log::LevelFilter::Trace).unwrap();
-        let main_class_path = &"jars/Output_Files/HelloMIDlet.class";
+        let main_class_path = &"jars/HelloMIDlet/HelloMIDlet.class";
         //#[cfg(feature = "log")]
         //trace!("{:}", main_class_path);
         let main_class_data = fs::read(main_class_path).expect("CLASS FILE NOT FOUND");
